@@ -1,9 +1,12 @@
 import pyodbc
 from flask import Flask
+from login import login_bp
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='../html')
+app.secret_key = 'tarea3'
 
-# Configuracion de conexion
+app.register_blueprint(login_bp)
+
 DB_CONFIG = {
     'server': 'localhost',
     'database': 'tarea3',
@@ -21,13 +24,6 @@ def get_connection():
         f"PWD={DB_CONFIG['password']};"
     )
     return conn
-
-try:
-    conn = get_connection()
-    print("Conexion exitosa")
-    conn.close()
-except Exception as e:
-    print(f"Error: {str(e)}")
 
 if __name__ == '__main__':
     app.run(debug=True)
