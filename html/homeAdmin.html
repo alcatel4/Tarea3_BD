@@ -119,9 +119,9 @@
 
     <div class="container">
 
-        <form action="/admin" method="GET">
+        <form action="/homeAdmin" method="GET">
             <div class="search-bar">
-                <input type="text" name="filtro" placeholder="Buscar empleado..." value="{{ filtro }}"/>
+                <input type="text" name="filtro" placeholder="Buscar empleado..." value="<!--FILTRO-->"/>
                 <button type="submit">Buscar</button>
             </div>
         </form>
@@ -135,16 +135,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for empleado in empleados %}
-                <tr>
-                    <td>{{ empleado.Nombre }}</td>
-                    <td>{{ empleado.Puesto }}</td>
-                    <td>
-                        <a class="btn-accion btn-editar" href="/admin/editar/{{ empleado.Id }}">Editar</a>
-                        <a class="btn-accion btn-impersonar" href="/admin/impersonar/{{ empleado.Id }}">Impersonar</a>
-                    </td>
-                </tr>
-                {% endfor %}
+                <!--FILAS-->
             </tbody>
         </table>
 
