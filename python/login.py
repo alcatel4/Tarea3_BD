@@ -1,5 +1,5 @@
-from flask import Blueprint, render_template, request, redirect, session
-from app import get_connection
+from flask import Blueprint, request, session, redirect
+from db import get_connection
 
 login_bp = Blueprint('login', __name__)
 
@@ -7,37 +7,57 @@ login_bp = Blueprint('login', __name__)
 def index():
     return redirect('/login')
 
-@login_bp.route('/login', methods=['GET', 'POST'])
+@login_bp.route('/login', methods=['GET'])
 def login():
-    if request.method == 'GET':
-        return render_template('login.html')
+    with open('html/login.html', 'r', encoding='utf-8') as f:
+        html = f.read()
+    return html
 
-    username = request.form['username']
-    password = request.form['password']
+@login_bp.route('/login', methods=['POST'])
+def do_login():
+    username = request.form.get('username')
+    password = request.form.get('password')
     ip = request.remote_addr
 
-    try:
-        conn = get_connection()
-        cursor = conn.cursor()
+    conn = get_connection()
+    cursor = conn.cursor()
 
-        cursor.execute("EXEC dbo.procLogin ?, ?, ?", username, password, ip)
+    cursor.execute(
+        "DECLARE @outResultCode INT; EXEC dbo.procLogin ?, ?, ?, @outResultCode OUTPUT; SELECT @outResultCode",
+        username, password, ip
+    )
 
-        row = cursor.fetchone()
-        tipo = row[0]  # TipoUsuario
-        resultCode = row[1]  # ResultCode
+    row = cursor.fetchone()
+    resultCode = row[0]
+    print(f"resultCode: {resultCode}")
+    cursor.close()
+
+    if resultCode != 0:
         conn.close()
+        with open('html/login.html', 'r', encoding='utf-8') as f:
+            html = f.read()
+        html = html.replace(
+            '<!--ERROR-->',
+            '<p style="color:red; text-align:center; margin-top:15px;">Usuario o password incorrecto</p>'
+        )
+        return html
 
-        if resultCode != 0:
-            return render_template('login.html', error='Usuario o password incorrecto')
+    cursor2 = conn.cursor()
+    cursor2.execute(
+        "DECLARE @outResultCode INT; EXEC dbo.procObtenerTipoUsuario ?, @outResultCode OUTPUT; SELECT @outResultCode",
+        username
+    )
 
-        session['username'] = username
-        session['tipo'] = tipo
+    row2 = cursor2.fetchone()
+    tipo = row2[0]
+    print(f"tipo: {tipo}")
+    cursor2.close()
+    conn.close()
 
-        if tipo == 1:# Admin
-            return redirect('/admin')
-        else: # Empleado
-            return redirect('/empleado')
+    session['username'] = username
+    session['tipo'] = tipo
 
-    except Exception as e:
-        return render_template('login.html', error=f'Error: {str(e)}')
-
+    if tipo == 1:
+        return redirect('/homeAdmin')
+    else:
+        return redirect('/homeEmpl')

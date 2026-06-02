@@ -1,9 +1,8 @@
 CREATE PROCEDURE dbo.procLogin
-    @inUsername VARCHAR(64)  --Username del usuario
-    ,@inPassword VARCHAR(64)  --Password del usuario
-    ,@inPostInIP VARCHAR(64)  --IP de origen del login
-    ,@outTipoUsuario INT OUTPUT
-    ,@outResultCode   INT OUTPUT
+    @inUsername VARCHAR(64)
+    ,@inPassword VARCHAR(64)
+    ,@inPostInIP VARCHAR(64)
+    ,@outResultCode INT OUTPUT
 AS
 BEGIN
     SET NOCOUNT ON
@@ -14,7 +13,6 @@ BEGIN
     DECLARE @DescripcionEvento VARCHAR(256)
 
     SET @outResultCode = 0
-    SET @outTipoUsuario = 0
 
     BEGIN TRY
 
@@ -22,45 +20,36 @@ BEGIN
         FROM dbo.Usuario AS u
         WHERE (u.Username = @inUsername)
 
-        IF (@IdUsuario IS NULL) --Comprueba que el usuario exista
+        IF (@IdUsuario IS NULL)
         BEGIN
             SET @outResultCode = 50001
-            RETURN
-        END
-
-        SELECT @PassUsuario = u.Password
-        FROM dbo.Usuario AS u
-        WHERE (u.Id = @IdUsuario) 
-            AND (u.Password = @inPassword)
-
-        IF (@PassUsuario IS NULL) 
-        BEGIN
-            SET @outResultCode = 50002
-            SET @IdTipoEvento = 2
-            SET @DescripcionEvento = 'Fallido: Password incorrecto'
-            SET @outTipoUsuario = 0
         END
         ELSE
         BEGIN
-            SET @outResultCode = 0
-            SET @IdTipoEvento = 1
-            SET @DescripcionEvento = 'Exitoso'
-
-            SELECT @outTipoUsuario = u.Tipo
+            SELECT @PassUsuario = u.Password
             FROM dbo.Usuario AS u
-            WHERE u.Id = @IdUsuario
-        END
+            WHERE (u.Id = @IdUsuario)
+                AND (u.Password = @inPassword)
 
-            SELECT @outTipoUsuario AS TipoUsuario,@outResultCode AS ResultCode
-        BEGIN TRANSACTION
+            IF (@PassUsuario IS NULL)
+            BEGIN
+                SET @outResultCode = 50002
+                SET @IdTipoEvento = 2
+                SET @DescripcionEvento = 'Fallido: Password incorrecto'
+            END
+            ELSE
+            BEGIN
+                SET @outResultCode = 0
+                SET @IdTipoEvento = 1
+                SET @DescripcionEvento = 'Exitoso'
+            END
 
             INSERT INTO dbo.BitacoraEvento (
-                IdTipoEvento
+                idTipoEvento
                 ,IpPostIn
                 ,PostTime
                 ,Descripcion
                 ,idUsuario
-                ,idTipoEvento
             )
             VALUES (
                 @IdTipoEvento
@@ -68,38 +57,11 @@ BEGIN
                 ,GETDATE()
                 ,@DescripcionEvento
                 ,@IdUsuario
-                ,@IdTipoEvento
-                
             )
-
-        COMMIT TRANSACTION
+        END
 
     END TRY
     BEGIN CATCH
-    IF @@TRANCOUNT > 0
-        ROLLBACK TRANSACTION
-
-        INSERT INTO dbo.DBError (
-            UserName
-            ,Number
-            ,State
-            ,Severity
-            ,Line
-            ,[Procedure]
-            ,Message
-            ,DateTime
-        )
-        VALUES (
-            @inUsername
-            ,ERROR_NUMBER()
-            ,ERROR_STATE()
-            ,ERROR_SEVERITY()
-            ,ERROR_LINE()
-            ,ERROR_PROCEDURE()
-            ,ERROR_MESSAGE()
-            ,GETDATE()
-        )
-
         SET @outResultCode = 50008
     END CATCH
 END

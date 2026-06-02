@@ -32,14 +32,10 @@
         .btn-logout {
             color: white;
             text-decoration: none;
-            font-size: 14px;
             background-color: #e74c3c;
             padding: 8px 15px;
             border-radius: 4px;
-        }
-
-        .btn-logout:hover {
-            background-color: #c0392b;
+            font-size: 14px;
         }
 
         .container {
@@ -60,7 +56,7 @@
             width: 300px;
         }
 
-        .btn-buscar {
+        .search-bar button {
             padding: 10px 20px;
             background-color: #4a90e2;
             color: white;
@@ -68,24 +64,6 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
-        }
-
-        .btn-buscar:hover {
-            background-color: #357abd;
-        }
-
-        .btn-limpiar {
-            padding: 10px 20px;
-            background-color: #95a5a6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .btn-limpiar:hover {
-            background-color: #7f8c8d;
         }
 
         table {
@@ -108,41 +86,27 @@
             font-size: 14px;
         }
 
-        tbody tr:hover {
-            background-color: #f5f7fa;
-        }
-
         tbody tr:nth-child(even) {
             background-color: #fafafa;
         }
 
-        .btn-editar {
+        .btn-accion {
             padding: 6px 14px;
-            background-color: #4a90e2;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
+            text-decoration: none;
+        }
+
+        .btn-editar {
+            background-color: #4a90e2;
             margin-right: 5px;
         }
 
-        .btn-editar:hover {
-            background-color: #357abd;
-        }
-
         .btn-impersonar {
-            padding: 6px 14px;
             background-color: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        .btn-impersonar:hover {
-            background-color: #1e8449;
         }
     </style>
 </head>
@@ -154,11 +118,13 @@
     </div>
 
     <div class="container">
-        <div class="search-bar">
-            <input type="text" id="filtro" placeholder="Buscar empleado..."/>
-            <button class="btn-buscar" onclick="buscar()">Buscar</button>
-            <button class="btn-limpiar" onclick="limpiar()">Limpiar</button>
-        </div>
+
+        <form action="/admin" method="GET">
+            <div class="search-bar">
+                <input type="text" name="filtro" placeholder="Buscar empleado..." value="{{ filtro }}"/>
+                <button type="submit">Buscar</button>
+            </div>
+        </form>
 
         <table>
             <thead>
@@ -169,16 +135,20 @@
                 </tr>
             </thead>
             <tbody>
+                {% for empleado in empleados %}
                 <tr>
-                    <td>Nombre</td>
-                    <td>Puesto</td>
+                    <td>{{ empleado.Nombre }}</td>
+                    <td>{{ empleado.Puesto }}</td>
                     <td>
-                        <button class="btn-editar" onclick="editar()">Editar</button>
-                        <button class="btn-impersonar" onclick="impersonar()">Impersonar</button>
+                        <a class="btn-accion btn-editar" href="/admin/editar/{{ empleado.Id }}">Editar</a>
+                        <a class="btn-accion btn-impersonar" href="/admin/impersonar/{{ empleado.Id }}">Impersonar</a>
                     </td>
                 </tr>
+                {% endfor %}
             </tbody>
         </table>
+
     </div>
+
 </body>
 </html>
