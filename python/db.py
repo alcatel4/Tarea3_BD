@@ -16,5 +16,4 @@ def get_connection():
         f"UID={DB_CONFIG['username']};"
         f"PWD={DB_CONFIG['password']};"
     )
-    conn.autocommit = True
     return conn

@@ -35,13 +35,13 @@ BEGIN
             BEGIN
                 SET @outResultCode = 50002
                 SET @IdTipoEvento = 2
-                SET @DescripcionEvento = 'Fallido: Password incorrecto'
+                SET @DescripcionEvento = @inUsername + ', No exitoso'
             END
             ELSE
             BEGIN
                 SET @outResultCode = 0
                 SET @IdTipoEvento = 1
-                SET @DescripcionEvento = 'Exitoso'
+                SET @DescripcionEvento = @inUsername + ', Exitoso'
             END
 
             INSERT INTO dbo.BitacoraEvento (
@@ -62,6 +62,29 @@ BEGIN
 
     END TRY
     BEGIN CATCH
+
+        INSERT INTO dbo.DBError (
+            UserName
+            ,Number
+            ,State
+            ,Severity
+            ,Line
+            ,[Procedure]
+            ,Message
+            ,DateTime
+        )
+        VALUES (
+            @inUsername
+            ,ERROR_NUMBER()
+            ,ERROR_STATE()
+            ,ERROR_SEVERITY()
+            ,ERROR_LINE()
+            ,ERROR_PROCEDURE()
+            ,ERROR_MESSAGE()
+            ,GETDATE()
+        )
+
         SET @outResultCode = 50008
+
     END CATCH
 END

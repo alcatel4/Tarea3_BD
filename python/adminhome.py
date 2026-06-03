@@ -8,11 +8,14 @@ def home_admin():
     if session.get('tipo') != 1:
         return redirect('/login')
 
+    filtro = request.args.get('filtro', '')
+
     conn = get_connection()
     cursor = conn.cursor()
 
     cursor.execute(
-        "DECLARE @outResultCode INT; EXEC dbo.procListarEmpleados @outResultCode OUTPUT"
+        "DECLARE @outResultCode INT; EXEC dbo.procListarEmpleados ?, ?, ?, @outResultCode OUTPUT",
+        filtro, session.get('username'), request.remote_addr
     )
 
     filas = ''
@@ -28,6 +31,7 @@ def home_admin():
         </tr>
         '''
 
+    conn.commit()
     cursor.close()
     conn.close()
 
@@ -35,4 +39,5 @@ def home_admin():
         html = f.read()
 
     html = html.replace('<!--FILAS-->', filas)
+    html = html.replace('<!--FILTRO-->', filtro)
     return html

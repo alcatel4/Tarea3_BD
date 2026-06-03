@@ -30,6 +30,7 @@ def do_login():
     row = cursor.fetchone()
     resultCode = row[0]
     print(f"resultCode: {resultCode}")
+    conn.commit()
     cursor.close()
 
     if resultCode != 0:
