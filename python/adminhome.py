@@ -41,3 +41,30 @@ def home_admin():
     html = html.replace('<!--FILAS-->', filas)
     html = html.replace('<!--FILTRO-->', filtro)
     return html
+
+@admin_bp.route('/impersonar/<int:id_empleado>')
+def impersonar(id_empleado):
+    if session.get('tipo') != 1:
+        return redirect('/login')
+
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DECLARE @outResultCode INT; EXEC dbo.procImpersonarEmpleado ?, ?, ?, @outResultCode OUTPUT",
+        id_empleado, session.get('username'), request.remote_addr
+    )
+
+    row = cursor.fetchone()
+    username_empleado = row[0]
+
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+    session['impersonando'] = True
+    session['username_admin'] = session.get('username')
+    session['username'] = username_empleado
+    session['tipo'] = 2
+
+    return redirect('/homeEmpl')
