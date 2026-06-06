@@ -1,0 +1,1 @@
+-- Recibe un idSemana, retorna todas las deducciones de esa semana: nombre, porcentaje (si aplica) y monto

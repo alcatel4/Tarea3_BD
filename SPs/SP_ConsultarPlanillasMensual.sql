@@ -1,0 +1,1 @@
+-- Recibe un idEmpleado, retorna todas las planillas mensuales: fechas, salario bruto, deducciones, salario neto

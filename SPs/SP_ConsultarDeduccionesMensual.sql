@@ -1,0 +1,1 @@
+-- Recibe un idMes, retorna las deducciones acumuladas del mes: nombre, porcentaje y monto

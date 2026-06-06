@@ -1,0 +1,2 @@
+-- Recibe un idSemana, retorna por cada día: fecha, hora entrada, hora salida, tipo de movimiento y monto. 
+-- Es el modal que aparece al clickear el salario bruto
