@@ -1,11 +1,450 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Portal Empleado</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+        }
+
+        .navbar {
+            background-color: #2c3e50;
+            padding: 15px 30px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            font-size: 20px;
+        }
+
+        .nav-right {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .btn-volver {
+            color: white;
+            text-decoration: none;
+            background-color: #f39c12;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn-volver:hover {
+            background-color: #d68910;
+        }
+
+        .btn-logout {
+            color: white;
+            text-decoration: none;
+            background-color: #e74c3c;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .btn-logout:hover {
+            background-color: #c0392b;
+        }
+
+        .container {
+            padding: 30px;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .tab {
+            padding: 10px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: #777;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            font-family: Arial, sans-serif;
+        }
+
+        .tab.active {
+            color: #2c3e50;
+            border-bottom: 3px solid #2c3e50;
+            font-weight: bold;
+        }
+
+        .tab:hover:not(.active) {
+            color: #2c3e50;
+            background-color: #f5f5f5;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        thead {
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        th, td {
+            padding: 14px 20px;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+
+        .clickable {
+            color: #2980b9;
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 14px;
+            background: none;
+            border: none;
+            font-family: Arial, sans-serif;
+            padding: 0;
+        }
+
+        .clickable:hover {
+            color: #1a5276;
+        }
+
+        /* ── OVERLAY + MODAL ── */
+        .overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            width: 660px;
+            max-width: 95vw;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 1;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            color: #2c3e50;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 22px;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+            padding: 0 4px;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-body {
+            padding: 20px 24px;
+        }
+
+        .modal table {
+            box-shadow: none;
+            border: 1px solid #eee;
+        }
+
+        .modal thead {
+            background-color: #f0f2f5;
+            color: #2c3e50;
+        }
+
+        .modal th {
+            font-size: 13px;
+        }
+
+        .modal td {
+            font-size: 13px;
+            padding: 10px 16px;
+        }
+
+        /* ── BADGES ── */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .badge-green {
+            background-color: #d5f5e3;
+            color: #1e8449;
+        }
+
+        .badge-blue {
+            background-color: #d6eaf8;
+            color: #1a5276;
+        }
+
+        .badge-orange {
+            background-color: #fdebd0;
+            color: #a04000;
+        }
+
+        .empty-msg {
+            text-align: center;
+            color: #888;
+            padding: 40px;
+            font-size: 14px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Bienvenido Empleado</h1>
+
+    <div class="navbar">
+        <h1>Portal Empleado &mdash; <!--NOMBRE_EMPLEADO--></h1>
+        <div class="nav-right">
+            <!--BOTON_VOLVER-->
+            <a class="btn-logout" href="/logout">Cerrar sesión</a>
+        </div>
+    </div>
+
+    <div class="container">
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('semanal', this)">Planilla Semanal</button>
+            <button class="tab" onclick="switchTab('mensual', this)">Planilla Mensual</button>
+        </div>
+
+        <!-- ── TAB SEMANAL (R04) ── -->
+        <div id="semanal" class="section active">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Semana</th>
+                        <th>Salario bruto</th>
+                        <th>Deducciones</th>
+                        <th>Salario neto</th>
+                        <th>H. ordinarias</th>
+                        <th>H. extra normales</th>
+                        <th>H. extra dobles</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!--FILAS_SEMANAL-->
+                </tbody>
+            </table>
+        </div>
+
+        <!-- ── TAB MENSUAL (R05) ── -->
+        <div id="mensual" class="section">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mes planilla</th>
+                        <th>Salario bruto</th>
+                        <th>Deducciones</th>
+                        <th>Salario neto</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!--FILAS_MENSUAL-->
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <!-- ── OVERLAY MODAL ── -->
+    <div class="overlay" id="overlay" onclick="cerrarOverlay(event)">
+        <div class="modal" id="modal">
+            <div class="modal-header">
+                <h3 id="modal-titulo">Detalle</h3>
+                <button class="modal-close" onclick="cerrarModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            el.classList.add('active');
+        }
+
+        function abrirModalBruto(idSemana, labelSemana) {
+            document.getElementById('modal-titulo').textContent = 'Detalle salario bruto \u2014 ' + labelSemana;
+            document.getElementById('modal-body').innerHTML = '<p style="color:#888;text-align:center;padding:20px;font-size:14px">Cargando...</p>';
+            document.getElementById('overlay').classList.add('show');
+
+            fetch('/detalleSemanal?idSemana=' + idSemana)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.length) {
+                        document.getElementById('modal-body').innerHTML = '<p class="empty-msg">Sin movimientos registrados.</p>';
+                        return;
+                    }
+                    let html = '<table><thead><tr>'
+                        + '<th>Fecha</th><th>Entrada</th><th>Salida</th>'
+                        + '<th>Tipo movimiento</th><th style="text-align:right">Horas</th>'
+                        + '<th style="text-align:right">Monto</th>'
+                        + '</tr></thead><tbody>';
+                    data.forEach(function(row) {
+                        let badge = '';
+                        if (row.tipo === 'H. ordinarias')      badge = '<span class="badge badge-green">H. ordinarias</span>';
+                        else if (row.tipo === 'H. extra normal') badge = '<span class="badge badge-blue">H. extra normal</span>';
+                        else if (row.tipo === 'H. extra doble')  badge = '<span class="badge badge-orange">H. extra doble</span>';
+                        else badge = row.tipo;
+                        html += '<tr>'
+                            + '<td>' + row.fecha + '</td>'
+                            + '<td>' + row.entrada + '</td>'
+                            + '<td>' + row.salida + '</td>'
+                            + '<td>' + badge + '</td>'
+                            + '<td style="text-align:right">' + row.horas + '</td>'
+                            + '<td style="text-align:right">&#8353; ' + row.monto + '</td>'
+                            + '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('modal-body').innerHTML = html;
+                })
+                .catch(function() {
+                    document.getElementById('modal-body').innerHTML = '<p class="empty-msg">Error al cargar los datos.</p>';
+                });
+        }
+
+        function abrirModalDedSemanal(idSemana, labelSemana) {
+            document.getElementById('modal-titulo').textContent = 'Deducciones semana \u2014 ' + labelSemana;
+            document.getElementById('modal-body').innerHTML = '<p style="color:#888;text-align:center;padding:20px;font-size:14px">Cargando...</p>';
+            document.getElementById('overlay').classList.add('show');
+
+            fetch('/deduccionesSemanal?idSemana=' + idSemana)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.length) {
+                        document.getElementById('modal-body').innerHTML = '<p class="empty-msg">Sin deducciones registradas.</p>';
+                        return;
+                    }
+                    let html = '<table><thead><tr>'
+                        + '<th>Deducción</th>'
+                        + '<th style="text-align:center">Porcentaje</th>'
+                        + '<th style="text-align:right">Monto</th>'
+                        + '</tr></thead><tbody>';
+                    data.forEach(function(row) {
+                        html += '<tr>'
+                            + '<td>' + row.nombre + '</td>'
+                            + '<td style="text-align:center">' + (row.porcentaje !== null ? row.porcentaje + '%' : '&mdash;') + '</td>'
+                            + '<td style="text-align:right">&#8353; ' + row.monto + '</td>'
+                            + '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('modal-body').innerHTML = html;
+                })
+                .catch(function() {
+                    document.getElementById('modal-body').innerHTML = '<p class="empty-msg">Error al cargar los datos.</p>';
+                });
+        }
+
+        function abrirModalDedMensual(idMes, labelMes) {
+            document.getElementById('modal-titulo').textContent = 'Deducciones mes \u2014 ' + labelMes;
+            document.getElementById('modal-body').innerHTML = '<p style="color:#888;text-align:center;padding:20px;font-size:14px">Cargando...</p>';
+            document.getElementById('overlay').classList.add('show');
+
+            fetch('/deduccionesMensual?idMes=' + idMes)
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.length) {
+                        document.getElementById('modal-body').innerHTML = '<p class="empty-msg">Sin deducciones registradas.</p>';
+                        return;
+                    }
+                    let html = '<table><thead><tr>'
+                        + '<th>Deducción</th>'
+                        + '<th style="text-align:center">Porcentaje</th>'
+                        + '<th style="text-align:right">Monto acumulado</th>'
+                        + '</tr></thead><tbody>';
+                    data.forEach(function(row) {
+                        html += '<tr>'
+                            + '<td>' + row.nombre + '</td>'
+                            + '<td style="text-align:center">' + (row.porcentaje !== null ? row.porcentaje + '%' : '&mdash;') + '</td>'
+                            + '<td style="text-align:right">&#8353; ' + row.monto + '</td>'
+                            + '</tr>';
+                    });
+                    html += '</tbody></table>';
+                    document.getElementById('modal-body').innerHTML = html;
+                })
+                .catch(function() {
+                    document.getElementById('modal-body').innerHTML = '<p class="empty-msg">Error al cargar los datos.</p>';
+                });
+        }
+
+        function cerrarOverlay(e) {
+            if (e.target === document.getElementById('overlay')) cerrarModal();
+        }
+
+        function cerrarModal() {
+            document.getElementById('overlay').classList.remove('show');
+        }
+    </script>
+
 </body>
 </html>
