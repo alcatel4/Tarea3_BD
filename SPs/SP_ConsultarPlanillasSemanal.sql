@@ -11,6 +11,8 @@ BEGIN
     SET @outResultCode = 0
 
     DECLARE @idUsuario INT
+    DECLARE @fechaInicio DATETIME
+    DECLARE @fechaFin DATETIME
 
     BEGIN TRY
 
@@ -18,6 +20,14 @@ BEGIN
         SELECT @idUsuario = u.id
         FROM dbo.Usuario u
         WHERE (u.UserName = @inUsername)
+
+        -- Obtener datos de la semana para la bitácora
+        SELECT
+            @fechaInicio = MIN(s.FechaInicio)
+            ,@fechaFin = MAX(s.FechaFin)
+        FROM dbo.PlanillaSemanal ps
+        INNER JOIN dbo.Semana s ON (s.id = ps.idSemana)
+        WHERE (ps.idEmpleado = @inIdEmpleado)
 
         -- Consulta principal para obtener las planillas semanales del empleado
         SELECT
@@ -65,9 +75,11 @@ BEGIN
             VALUES (
                 @inPostInIP
                 ,GETDATE()
-                ,'{"idEmpleado": ' + CAST(@inIdEmpleado AS VARCHAR(16)) + '}'
+                ,'{"idEmpleado": ' + CAST(@inIdEmpleado AS VARCHAR(16))
+                    + ', "FechaInicio": "' + CONVERT(VARCHAR(16), @fechaInicio, 103)
+                    + '", "FechaFin": "' + CONVERT(VARCHAR(16), @fechaFin, 103) + '"}'
                 ,@idUsuario
-                ,13
+                ,20
             )
 
         COMMIT TRANSACTION
@@ -75,7 +87,7 @@ BEGIN
     END TRY
     BEGIN CATCH
 
-        IF @@TRANCOUNT > 1
+        IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION
 
         SET @outResultCode = 50008
