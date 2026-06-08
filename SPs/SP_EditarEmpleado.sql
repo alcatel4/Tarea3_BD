@@ -66,7 +66,7 @@ BEGIN
                 ,idUsuario
             )
             VALUES (
-                6
+                8
                 ,@inPostInIP
                 ,GETDATE()
                 ,@DescripcionEvento

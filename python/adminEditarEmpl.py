@@ -41,6 +41,7 @@ def editar(id_empleado):
     html = html.replace('<!--DOCUMENTO-->', row[3])
     html = html.replace('<!--CUENTA-->', row[4])
     html = html.replace('<!--PUESTOS-->', puestos)
+    html = html.replace('<!--FECHA_CONTRATACION-->', str(row[7]))
 
     return html
 

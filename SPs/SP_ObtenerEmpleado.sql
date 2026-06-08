@@ -16,6 +16,7 @@ BEGIN
             ,e.CuentaBancaria
             ,e.idPuesto
             ,p.Nombre AS NombrePuesto
+            ,e.FechaContratacion
         FROM dbo.Empleado AS e
         INNER JOIN dbo.Puesto AS p ON (p.id = e.idPuesto)
         WHERE (e.id = @inIdEmpleado)
