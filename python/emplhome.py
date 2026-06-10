@@ -8,12 +8,7 @@ def get_id_empleado(username):
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        """
-        SELECT e.id, e.Nombre
-        FROM dbo.Empleado e
-        INNER JOIN dbo.Usuario u ON (u.id = e.idUsuario)
-        WHERE (u.UserName = ?)
-        """,
+        "DECLARE @outResultCode INT; EXEC dbo.procObtenerEmpleadoPorUsuario ?, @outResultCode OUTPUT",
         username
     )
     row = cursor.fetchone()
@@ -28,14 +23,14 @@ def home_empl():
         return redirect('/login')
 
     username = session.get('username')
-    ip       = request.remote_addr
+    ip = request.remote_addr
 
     # Obtener idEmpleado y nombre
     row_empl = get_id_empleado(username)
-    id_empleado  = row_empl[0]
-    nombre_empl  = row_empl[1]
+    id_empleado = row_empl[0]
+    nombre_empl = row_empl[1]
 
-    conn   = get_connection()
+    conn = get_connection()
     cursor = conn.cursor()
 
     # ── Planillas semanales ──
