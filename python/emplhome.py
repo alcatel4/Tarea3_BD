@@ -140,7 +140,7 @@ def detalle_semanal():
     cursor = conn.cursor()
 
     cursor.execute(
-        "DECLARE @outResultCode INT; EXEC dbo.procDetalleSemanal ?, ?, ?, @outResultCode OUTPUT",
+        "DECLARE @outResultCode INT; EXEC dbo.procConsultarDetalleSemanal ?, ?, ?, @outResultCode OUTPUT",
         id_planilla_semanal, username, ip
     )
 
@@ -175,7 +175,7 @@ def deducciones_semanal():
     cursor = conn.cursor()
 
     cursor.execute(
-        "DECLARE @outResultCode INT; EXEC dbo.procDeduccionesSemanal ?, ?, ?, @outResultCode OUTPUT",
+        "DECLARE @outResultCode INT; EXEC dbo.procConsultarDeduccionesSemanal ?, ?, ?, @outResultCode OUTPUT",
         id_planilla_semanal, username, ip
     )
 
@@ -207,7 +207,7 @@ def deducciones_mensual():
     cursor = conn.cursor()
 
     cursor.execute(
-        "DECLARE @outResultCode INT; EXEC dbo.procDeduccionesMensual ?, ?, ?, @outResultCode OUTPUT",
+        "DECLARE @outResultCode INT; EXEC dbo.procConsultarDeduccionesMensual ?, ?, ?, @outResultCode OUTPUT",
         id_planilla_mensual, username, ip
     )
 

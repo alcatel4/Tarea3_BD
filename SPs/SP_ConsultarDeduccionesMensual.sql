@@ -3,9 +3,9 @@
 
 CREATE PROCEDURE dbo.procConsultarDeduccionesMensual
     @inIdPlanillaMensual INT
-    ,@inUsername         VARCHAR(64)
-    ,@inPostInIP         VARCHAR(64)
-    ,@outResultCode      INT OUTPUT
+    ,@inUsername VARCHAR(64)
+    ,@inPostInIP VARCHAR(64)
+    ,@outResultCode INT OUTPUT
 
 AS
 BEGIN
@@ -13,10 +13,10 @@ BEGIN
     SET NOCOUNT ON
     SET @outResultCode = 0
 
-    DECLARE @idUsuario   INT
-    DECLARE @idEmpleado  INT
+    DECLARE @idUsuario INT
+    DECLARE @idEmpleado INT
     DECLARE @fechaInicio DATETIME
-    DECLARE @fechaFin    DATETIME
+    DECLARE @fechaFin DATETIME
 
     BEGIN TRY
 
@@ -25,9 +25,9 @@ BEGIN
         WHERE (u.UserName = @inUsername)
 
         SELECT
-            @idEmpleado  = pm.idEmpleado
+            @idEmpleado = pm.idEmpleado
             ,@fechaInicio = m.FechaInicio
-            ,@fechaFin    = m.FechaFin
+            ,@fechaFin = m.FechaFin
         FROM dbo.PlanillaMensual pm
         INNER JOIN dbo.Mes m ON (m.id = pm.idMes)
         WHERE (pm.id = @inIdPlanillaMensual)
@@ -60,7 +60,7 @@ BEGIN
                 ,GETDATE()
                 ,'{"idEmpleado": ' + CAST(@idEmpleado AS VARCHAR(16))
                     + ', "FechaInicio": "' + CONVERT(VARCHAR(16), @fechaInicio, 103)
-                    + '", "FechaFin": "'   + CONVERT(VARCHAR(16), @fechaFin,    103) + '"}'
+                    + '", "FechaFin": "' + CONVERT(VARCHAR(16), @fechaFin, 103) + '"}'
                 ,@idUsuario
                 ,21
             )
