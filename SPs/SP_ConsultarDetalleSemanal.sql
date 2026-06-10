@@ -1,7 +1,7 @@
 -- Recibe un idSemana, retorna por cada día: fecha, hora entrada, hora salida, tipo de movimiento y monto. 
 -- Es el modal que aparece al clickear el salario bruto
 
-CREATE PROCEDURE dbo.procDetalleSemanal
+CREATE PROCEDURE dbo.procConsultarDetalleSemanal
     @inIdPlanillaSemanal INT
     ,@inUsername VARCHAR(64)
     ,@inPostInIP VARCHAR(64)

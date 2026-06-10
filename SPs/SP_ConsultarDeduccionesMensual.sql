@@ -1,7 +1,7 @@
 -- Recibe un idPlanillaMensual, retorna todas las deducciones acumuladas de ese mes.
 -- Es el que aparece al clickear el total de deducciones en R05.
 
-CREATE PROCEDURE dbo.procDeduccionesMensual
+CREATE PROCEDURE dbo.procConsultarDeduccionesMensual
     @inIdPlanillaMensual INT
     ,@inUsername         VARCHAR(64)
     ,@inPostInIP         VARCHAR(64)

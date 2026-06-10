@@ -1,7 +1,7 @@
 -- Recibe un idPlanillaSemanal, retorna todas las deducciones de esa semana: nombre, porcentaje (si aplica) y monto
 -- Es el modal que aparece al clickear el total de deducciones en R04.
 
-CREATE PROCEDURE dbo.procDeduccionesSemanal
+CREATE PROCEDURE dbo.procConsultarDeduccionesSemanal
     @inIdPlanillaSemanal INT
     ,@inUsername VARCHAR(64)
     ,@inPostInIP VARCHAR(64)
