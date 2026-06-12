@@ -9,11 +9,17 @@ BEGIN
 
     DECLARE @IdEmpleado INT
     DECLARE @IdTipoDeduccion INT
+    DECLARE @IdUsuarioSistema INT
     DECLARE @FlagPorcentual BIT
+    DECLARE @Descripcion VARCHAR(256)
 
     SET @outResultCode = 0
 
     BEGIN TRY
+
+        SELECT @IdUsuarioSistema = u.id
+        FROM dbo.Usuario AS u
+        WHERE (u.Tipo = 1)
 
         SELECT @IdEmpleado = e.id
         FROM dbo.Empleado AS e
@@ -26,9 +32,12 @@ BEGIN
         END
 
         SELECT @IdTipoDeduccion = td.id
-            ,@FlagPorcentual  = td.FlagPorcentual
+            ,@FlagPorcentual = td.FlagPorcentual
         FROM dbo.TipoDeduccion AS td
         WHERE (td.Nombre = @inTipoDeduccion)
+
+        SET @Descripcion = '{"Empleado":"' + @inValorDocumentoIdentidad +
+            '","TipoDeduccion":"' + @inTipoDeduccion + '"}'
 
         BEGIN TRANSACTION
 
@@ -48,6 +57,21 @@ BEGIN
                     AND (idTipoDeduccion = @IdTipoDeduccion)
                     AND (FechaFin = '9999-12-31')
             END
+
+            INSERT INTO dbo.BitacoraEvento (
+                idTipoEvento
+                ,IpPostIn
+                ,PostTime
+                ,Descripcion
+                ,idUsuario
+            )
+            VALUES (
+                19
+                ,'127.0.0.1'
+                ,GETDATE()
+                ,@Descripcion
+                ,@IdUsuarioSistema
+            )
 
         COMMIT TRANSACTION
 

@@ -10,12 +10,18 @@ BEGIN
 
     DECLARE @IdEmpleado INT
     DECLARE @IdTipoDeduccion INT
+    DECLARE @IdUsuarioSistema INT
     DECLARE @FlagPorcentual BIT
     DECLARE @Porcentaje DECIMAL(6,4)
+    DECLARE @Descripcion VARCHAR(256)
 
     SET @outResultCode = 0
 
     BEGIN TRY
+
+        SELECT @IdUsuarioSistema = u.id
+        FROM dbo.Usuario AS u
+        WHERE (u.Tipo = 1)
 
         SELECT @IdEmpleado = e.id
         FROM dbo.Empleado AS e
@@ -32,6 +38,10 @@ BEGIN
             ,@Porcentaje = td.Porcentaje
         FROM dbo.TipoDeduccion AS td
         WHERE (td.Nombre = @inTipoDeduccion)
+
+        SET @Descripcion = '{"Empleado":"' + @inValorDocumentoIdentidad +
+            '","TipoDeduccion":"' + @inTipoDeduccion +
+            '","MontoFijo":"' + CAST(@inMontoFijo AS VARCHAR) + '"}'
 
         BEGIN TRANSACTION
 
@@ -69,6 +79,21 @@ BEGIN
                     ,@IdTipoDeduccion
                 )
             END
+
+            INSERT INTO dbo.BitacoraEvento (
+                idTipoEvento
+                ,IpPostIn
+                ,PostTime
+                ,Descripcion
+                ,idUsuario
+            )
+            VALUES (
+                18
+                ,'127.0.0.1'
+                ,GETDATE()
+                ,@Descripcion
+                ,@IdUsuarioSistema
+            )
 
         COMMIT TRANSACTION
 

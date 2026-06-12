@@ -10,10 +10,16 @@ BEGIN
     DECLARE @IdEmpleado INT
     DECLARE @IdTipoJornada INT
     DECLARE @IdPlanillaSemanal INT
+    DECLARE @IdUsuarioSistema INT
+    DECLARE @Descripcion VARCHAR(256)
 
     SET @outResultCode = 0
 
     BEGIN TRY
+
+        SELECT @IdUsuarioSistema = u.id
+        FROM dbo.Usuario AS u
+        WHERE (u.Tipo = 1)
 
         SELECT @IdEmpleado = e.id
         FROM dbo.Empleado AS e
@@ -32,8 +38,12 @@ BEGIN
         SELECT @IdPlanillaSemanal = ps.id
         FROM dbo.PlanillaSemanal AS ps
         INNER JOIN dbo.Semana AS s ON (s.id = ps.idSemana)
-        WHERE (ps.idEmpleado  = @IdEmpleado)
+        WHERE (ps.idEmpleado = @IdEmpleado)
             AND (s.FechaInicio = @inInicioSemana)
+
+        SET @Descripcion = '{"Empleado":"' + @inValorDocumentoIdentidad +
+            '","Jornada":"' + @inJornada +
+            '","InicioSemana":"' + CAST(@inInicioSemana AS VARCHAR) + '"}'
 
         BEGIN TRANSACTION
 
@@ -44,6 +54,21 @@ BEGIN
             VALUES (
                 @IdPlanillaSemanal
                 ,@IdTipoJornada
+            )
+
+            INSERT INTO dbo.BitacoraEvento (
+                idTipoEvento
+                ,IpPostIn
+                ,PostTime
+                ,Descripcion
+                ,idUsuario
+            )
+            VALUES (
+                23
+                ,'127.0.0.1'
+                ,GETDATE()
+                ,@Descripcion
+                ,@IdUsuarioSistema
             )
 
         COMMIT TRANSACTION
