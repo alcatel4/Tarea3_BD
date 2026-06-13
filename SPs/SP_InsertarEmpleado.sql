@@ -13,20 +13,16 @@ BEGIN
     DECLARE @IdUsuario INT
     DECLARE @IdUsuarioSistema INT
     DECLARE @IdEmpleado INT
-    DECLARE @IdTipoDeduccionObl INT
-    DECLARE @PorcentajeObl DECIMAL(6,4)
     DECLARE @Descripcion VARCHAR(256)
 
     SET @outResultCode = 0
 
     BEGIN TRY
 
-        -- Obtener usuario administrador del sistema para bitacora
         SELECT @IdUsuarioSistema = u.id
         FROM dbo.Usuario AS u
         WHERE (u.Tipo = 1)
 
-        -- Obtener id del puesto por nombre
         SELECT @IdPuesto = p.id
         FROM dbo.Puesto AS p
         WHERE (p.Nombre = @inPuesto)
@@ -37,7 +33,6 @@ BEGIN
             RETURN
         END
 
-        -- Verificar que no exista ya el empleado
         IF EXISTS (
             SELECT 1
             FROM dbo.Empleado AS e
@@ -48,13 +43,6 @@ BEGIN
             RETURN
         END
 
-        -- Obtener deduccion obligatoria
-        SELECT @IdTipoDeduccionObl = td.id
-            ,@PorcentajeObl = td.Porcentaje
-        FROM dbo.TipoDeduccion AS td
-        WHERE (td.FlagObligatorio = 1)
-
-        -- Preparar descripcion para bitacora
         SET @Descripcion = '{"Nombre":"' + @inNombre +
             '","Documento":"' + @inValorDocumentoIdentidad +
             '","Puesto":"' + @inPuesto +
@@ -92,23 +80,6 @@ BEGIN
                 ,@IdPuesto
                 ,@IdUsuario
                 ,@inFechaContratacion
-            )
-
-            SET @IdEmpleado = SCOPE_IDENTITY()
-
-            INSERT INTO dbo.EmpXTipoDeduccionPorcentual (
-                FechaInicio
-                ,FechaFin
-                ,Porcentaje
-                ,idEmpleado
-                ,idTipoDeduccion
-            )
-            VALUES (
-                @inFechaContratacion
-                ,'9999-12-31'
-                ,@PorcentajeObl
-                ,@IdEmpleado
-                ,@IdTipoDeduccionObl
             )
 
             INSERT INTO dbo.BitacoraEvento (

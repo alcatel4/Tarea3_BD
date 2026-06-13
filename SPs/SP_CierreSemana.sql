@@ -9,16 +9,15 @@ BEGIN
     DECLARE @IdEmpleado INT
     DECLARE @IdPlanillaSemanal INT
     DECLARE @IdPlanillaMensual INT
+    DECLARE @IdMovPlanilla INT
     DECLARE @SalarioBruto MONEY
     DECLARE @TotalDeducciones MONEY
     DECLARE @SalarioNeto MONEY
-    DECLARE @MontoDeducciones MONEY
-    DECLARE @Porcentaje DECIMAL(6,4)
-    DECLARE @IdTipoDeduccion INT
     DECLARE @CantSemanas TINYINT
     DECLARE @Descripcion VARCHAR(256)
+    DECLARE @IdTipoDeduccionActual INT
+    DECLARE @MontoActual MONEY
 
-    -- Tabla variable para iterar empleados
     DECLARE @Empleados TABLE (
         id INT
         ,IdPlanillaSemanal INT
@@ -26,7 +25,6 @@ BEGIN
         ,SalarioBruto MONEY
     )
 
-    -- Tabla variable para iterar deducciones de cada empleado
     DECLARE @Deducciones TABLE (
         IdTipoDeduccion INT
         ,Monto MONEY
@@ -41,14 +39,15 @@ BEGIN
         FROM dbo.Usuario AS u
         WHERE (u.Tipo = 1)
 
-        -- Obtener cantidad de semanas del mes actual
         SELECT @CantSemanas = m.CantSemanas
         FROM dbo.Mes AS m
         INNER JOIN dbo.Semana AS s ON (s.idMes = m.id)
         WHERE (s.FechaInicio <= @inFechaOperacion)
             AND (s.FechaFin >= @inFechaOperacion)
 
-        -- Cargar empleados activos con su planilla semanal y mensual
+        IF (@CantSemanas IS NULL)
+            SET @CantSemanas = 4
+
         INSERT INTO @Empleados (id, IdPlanillaSemanal, IdPlanillaMensual, SalarioBruto)
         SELECT e.id
             ,ps.id
@@ -62,10 +61,8 @@ BEGIN
 
         BEGIN TRANSACTION
 
-            -- Iterar sobre cada empleado
             WHILE EXISTS (SELECT 1 FROM @Empleados)
             BEGIN
-                -- Tomar primer empleado
                 SELECT TOP 1
                     @IdEmpleado = e.id
                     ,@IdPlanillaSemanal = e.IdPlanillaSemanal
@@ -75,10 +72,8 @@ BEGIN
 
                 SET @TotalDeducciones = 0
 
-                -- Limpiar deducciones del empleado anterior
                 DELETE FROM @Deducciones
 
-                -- Cargar deducciones porcentuales vigentes del empleado
                 INSERT INTO @Deducciones (IdTipoDeduccion, Monto, EsPorcentual)
                 SELECT ep.idTipoDeduccion
                     ,@SalarioBruto * ep.Porcentaje
@@ -88,7 +83,6 @@ BEGIN
                     AND (ep.FechaInicio <= @inFechaOperacion)
                     AND (ep.FechaFin >= @inFechaOperacion)
 
-                -- Cargar deducciones fijas vigentes del empleado
                 INSERT INTO @Deducciones (IdTipoDeduccion, Monto, EsPorcentual)
                 SELECT ef.idTipoDeduccion
                     ,ef.Monto / @CantSemanas
@@ -98,47 +92,88 @@ BEGIN
                     AND (ef.FechaInicio <= @inFechaOperacion)
                     AND (ef.FechaFin >= @inFechaOperacion)
 
-                -- Insertar movimientos de deduccion y acumular total
-                INSERT INTO dbo.MovPlanilla (
-                    Fecha
-                    ,Monto
-                    ,NuevoSaldo
-                    ,idPlanillaSemanal
-                    ,idTipoMov
-                )
-                SELECT @inFechaOperacion
-                    ,d.Monto
-                    ,0
-                    ,@IdPlanillaSemanal
-                    ,(SELECT td.idTipoMov FROM dbo.TipoDeduccion AS td WHERE (td.id = d.IdTipoDeduccion))
-                FROM @Deducciones AS d
+                WHILE EXISTS (SELECT 1 FROM @Deducciones)
+                BEGIN
+                    SELECT TOP 1
+                        @IdTipoDeduccionActual = d.IdTipoDeduccion
+                        ,@MontoActual = d.Monto
+                    FROM @Deducciones AS d
 
-                -- Acumular total deducciones
-                SELECT @TotalDeducciones = SUM(d.Monto)
-                FROM @Deducciones AS d
+                    INSERT INTO dbo.MovPlanilla (
+                        Fecha
+                        ,Monto
+                        ,NuevoSaldo
+                        ,idPlanillaSemanal
+                        ,idTipoMov
+                    )
+                    VALUES (
+                        @inFechaOperacion
+                        ,@MontoActual
+                        ,0
+                        ,@IdPlanillaSemanal
+                        ,(SELECT td.idTipoMov FROM dbo.TipoDeduccion AS td WHERE (td.id = @IdTipoDeduccionActual))
+                    )
 
-                -- Calcular salario neto
+                    SET @IdMovPlanilla = SCOPE_IDENTITY()
+
+                    INSERT INTO dbo.MovDeduccion (
+                        idMovPlanilla
+                        ,idTipoDeduccion
+                    )
+                    VALUES (
+                        @IdMovPlanilla
+                        ,@IdTipoDeduccionActual
+                    )
+
+                    SET @TotalDeducciones = @TotalDeducciones + @MontoActual
+
+                    IF NOT EXISTS (
+                        SELECT 1
+                        FROM dbo.DeduccionMensual AS dm
+                        WHERE (dm.idPlanillaMensual = @IdPlanillaMensual)
+                            AND (dm.idTipoDeduccion = @IdTipoDeduccionActual)
+                    )
+                    BEGIN
+                        INSERT INTO dbo.DeduccionMensual (
+                            Monto
+                            ,idPlanillaMensual
+                            ,idTipoDeduccion
+                        )
+                        VALUES (
+                            @MontoActual
+                            ,@IdPlanillaMensual
+                            ,@IdTipoDeduccionActual
+                        )
+                    END
+                    ELSE
+                    BEGIN
+                        UPDATE dbo.DeduccionMensual
+                        SET Monto = Monto + @MontoActual
+                        WHERE (idPlanillaMensual = @IdPlanillaMensual)
+                            AND (idTipoDeduccion = @IdTipoDeduccionActual)
+                    END
+
+                    DELETE FROM @Deducciones
+                    WHERE (IdTipoDeduccion = @IdTipoDeduccionActual)
+                END
+
                 SET @SalarioNeto = @SalarioBruto - @TotalDeducciones
 
-                -- Actualizar planilla semanal
                 UPDATE dbo.PlanillaSemanal
                 SET TotalDeducciones = @TotalDeducciones
                     ,SalarioNeto = @SalarioNeto
                 WHERE (id = @IdPlanillaSemanal)
 
-                -- Acumular en planilla mensual
                 UPDATE dbo.PlanillaMensual
                 SET SalarioBruto = SalarioBruto + @SalarioBruto
                     ,TotalDeducciones = TotalDeducciones + @TotalDeducciones
                     ,SalarioNeto = SalarioNeto + @SalarioNeto
                 WHERE (id = @IdPlanillaMensual)
 
-                -- Eliminar empleado procesado de la tabla variable
-                DELETE TOP (1) FROM @Empleados
-
+                DELETE FROM @Empleados
+                WHERE (id = @IdEmpleado)
             END
 
-            -- Registrar evento en bitacora
             SET @Descripcion = '{"FechaCierre":"' + CAST(@inFechaOperacion AS VARCHAR) + '"}'
 
             INSERT INTO dbo.BitacoraEvento (
