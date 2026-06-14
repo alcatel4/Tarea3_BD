@@ -25,6 +25,7 @@ BEGIN
                 ,p.Nombre AS Puesto
             FROM dbo.Empleado AS e
             INNER JOIN dbo.Puesto AS p ON (p.id = e.idPuesto)
+            WHERE (e.EsActivo = 1)
             ORDER BY e.Nombre ASC
         END
         ELSE
@@ -35,6 +36,7 @@ BEGIN
             FROM dbo.Empleado AS e
             INNER JOIN dbo.Puesto AS p ON (p.id = e.idPuesto)
             WHERE (e.Nombre LIKE '%' + @inFiltro + '%')
+                AND (e.EsActivo = 1)
             ORDER BY e.Nombre ASC
 
             SET @DescripcionEvento = @inFiltro

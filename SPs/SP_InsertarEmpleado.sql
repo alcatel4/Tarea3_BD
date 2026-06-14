@@ -4,6 +4,8 @@ CREATE PROCEDURE dbo.procInsertarEmpleado
     ,@inPuesto VARCHAR(100)
     ,@inCuentaBancaria VARCHAR(30)
     ,@inFechaContratacion DATETIME
+    ,@inUsername VARCHAR(50)
+    ,@inPassword VARCHAR(255)
     ,@outResultCode INT OUTPUT
 AS
 BEGIN
@@ -12,7 +14,6 @@ BEGIN
     DECLARE @IdPuesto INT
     DECLARE @IdUsuario INT
     DECLARE @IdUsuarioSistema INT
-    DECLARE @IdEmpleado INT
     DECLARE @Descripcion VARCHAR(256)
 
     SET @outResultCode = 0
@@ -56,8 +57,8 @@ BEGIN
                 ,Tipo
             )
             VALUES (
-                @inValorDocumentoIdentidad
-                ,'1234'
+                @inUsername
+                ,@inPassword
                 ,2
             )
 
@@ -71,6 +72,7 @@ BEGIN
                 ,idPuesto
                 ,idUsuario
                 ,FechaContratacion
+                ,EsActivo
             )
             VALUES (
                 'Cedula'
@@ -80,6 +82,7 @@ BEGIN
                 ,@IdPuesto
                 ,@IdUsuario
                 ,@inFechaContratacion
+                ,1
             )
 
             INSERT INTO dbo.BitacoraEvento (

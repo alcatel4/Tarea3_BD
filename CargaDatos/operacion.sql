@@ -7,6 +7,8 @@ DECLARE @Nombre VARCHAR(100)
 DECLARE @Puesto VARCHAR(100)
 DECLARE @CuentaBancaria VARCHAR(30)
 DECLARE @FechaContratacion DATETIME
+DECLARE @Username VARCHAR(50)
+DECLARE @Password VARCHAR(255)
 DECLARE @TipoDeduccion VARCHAR(100)
 DECLARE @MontoFijo MONEY
 DECLARE @Jornada VARCHAR(50)
@@ -25,6 +27,12 @@ DECLARE @InsertarEmpleados TABLE (
     ,Puesto VARCHAR(100)
     ,CuentaBancaria VARCHAR(30)
     ,FechaContratacion DATETIME
+    ,Username VARCHAR(50)
+    ,Password VARCHAR(255)
+)
+
+DECLARE @EliminarEmpleados TABLE (
+    ValorDocumento VARCHAR(20)
 )
 
 DECLARE @AsociarDeducciones TABLE (
@@ -71,12 +79,13 @@ BEGIN
     PRINT 'Procesando: ' + @FechaStr
 
     DELETE FROM @InsertarEmpleados
+    DELETE FROM @EliminarEmpleados
     DELETE FROM @AsociarDeducciones
     DELETE FROM @DesasociarDeducciones
     DELETE FROM @AsignarJornadas
     DELETE FROM @MarcasAsistencia
 
-    INSERT INTO @InsertarEmpleados (ValorDocumento, Nombre, Puesto, CuentaBancaria, FechaContratacion)
+    INSERT INTO @InsertarEmpleados (ValorDocumento, Nombre, Puesto, CuentaBancaria, FechaContratacion, Username, Password)
     SELECT
         nodo.value('@ValorDocumentoIdentidad', 'VARCHAR(20)')
         ,nodo.value('@Nombre', 'VARCHAR(100)')
@@ -86,8 +95,17 @@ BEGIN
             NULLIF(nodo.value('@FechaContratacion', 'VARCHAR(20)'), '')
             ,@FechaStr
         )
+        ,nodo.value('@Username', 'VARCHAR(50)')
+        ,nodo.value('@Password', 'VARCHAR(255)')
     FROM @xml.nodes('/Operaciones/FechaOperacion') AS T1(fecha_nodo)
     CROSS APPLY fecha_nodo.nodes('InsertarEmpleado') AS T2(nodo)
+    WHERE (fecha_nodo.value('@Fecha', 'VARCHAR(20)') = @FechaStr)
+
+    INSERT INTO @EliminarEmpleados (ValorDocumento)
+    SELECT
+        nodo.value('@ValorDocumentoIdentidad', 'VARCHAR(20)')
+    FROM @xml.nodes('/Operaciones/FechaOperacion') AS T1(fecha_nodo)
+    CROSS APPLY fecha_nodo.nodes('EliminarEmpleado') AS T2(nodo)
     WHERE (fecha_nodo.value('@Fecha', 'VARCHAR(20)') = @FechaStr)
 
     INSERT INTO @AsociarDeducciones (ValorDocumento, TipoDeduccion, MontoFijo)
@@ -133,6 +151,8 @@ BEGIN
             ,@Puesto = ie.Puesto
             ,@CuentaBancaria = ie.CuentaBancaria
             ,@FechaContratacion = ie.FechaContratacion
+            ,@Username = ie.Username
+            ,@Password = ie.Password
         FROM @InsertarEmpleados AS ie
 
         EXEC dbo.procInsertarEmpleado
@@ -141,11 +161,28 @@ BEGIN
             ,@Puesto
             ,@CuentaBancaria
             ,@FechaContratacion
+            ,@Username
+            ,@Password
             ,@outResultCode OUTPUT
 
         PRINT 'InsertarEmpleado: ' + @ValorDocumento + ' ResultCode: ' + CAST(@outResultCode AS VARCHAR)
 
         DELETE FROM @InsertarEmpleados
+        WHERE (ValorDocumento = @ValorDocumento)
+    END
+
+    WHILE EXISTS (SELECT 1 FROM @EliminarEmpleados)
+    BEGIN
+        SELECT TOP 1 @ValorDocumento = ee.ValorDocumento
+        FROM @EliminarEmpleados AS ee
+
+        EXEC dbo.procEliminarEmpleado
+            @ValorDocumento
+            ,@outResultCode OUTPUT
+
+        PRINT 'EliminarEmpleado: ' + @ValorDocumento + ' ResultCode: ' + CAST(@outResultCode AS VARCHAR)
+
+        DELETE FROM @EliminarEmpleados
         WHERE (ValorDocumento = @ValorDocumento)
     END
 
