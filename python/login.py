@@ -29,7 +29,6 @@ def do_login():
 
     row = cursor.fetchone()
     resultCode = row[0]
-    print(f"resultCode: {resultCode}")
     conn.commit()
     cursor.close()
 
@@ -51,7 +50,6 @@ def do_login():
 
     row2 = cursor2.fetchone()
     tipo = row2[0]
-    print(f"tipo: {tipo}")
     cursor2.close()
     conn.close()
 
@@ -62,3 +60,26 @@ def do_login():
         return redirect('/homeAdmin')
     else:
         return redirect('/homeEmpl')
+
+
+@login_bp.route('/logout')
+def logout():
+    username = session.get('username')
+    ip = request.remote_addr
+
+    if username:
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "DECLARE @outResultCode INT; EXEC dbo.procLogout ?, ?, @outResultCode OUTPUT",
+                username, ip
+            )
+            conn.commit()
+            cursor.close()
+            conn.close()
+        except:
+            pass
+
+    session.clear()
+    return redirect('/login')

@@ -1,7 +1,7 @@
 import pyodbc
 
 DB_CONFIG = {
-    'server':   'localhost',
+    'server':   '25.32.116.163,1433',
     'database': 'tarea3',
     'driver':   'ODBC Driver 17 for SQL Server',
     'username': 'usuarioremoto',
@@ -15,5 +15,6 @@ def get_connection():
         f"DATABASE={DB_CONFIG['database']};"
         f"UID={DB_CONFIG['username']};"
         f"PWD={DB_CONFIG['password']};"
+        f"TrustServerCertificate=yes;"
     )
     return conn
