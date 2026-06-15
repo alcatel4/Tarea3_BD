@@ -28,15 +28,15 @@ BEGIN
 
     BEGIN TRY
 
-        -- La semana nueva inicia el viernes siguiente al jueves de operacion
         SET @FechaInicioSemana = DATEADD(DAY, 1, @inFechaJueves)
         SET @FechaFinSemana = DATEADD(DAY, 7, @inFechaJueves)
 
-        -- Si el viernes es el primer viernes del mes hay que crear un nuevo mes
-        IF (DAY(@FechaInicioSemana) <= 7)
+        IF (DATEPART(DAY, @FechaInicioSemana) <= 7)
             SET @flagNuevoMes = 1
 
-        -- Contar jueves del mes que inicia el viernes siguiente
+        IF NOT EXISTS (SELECT 1 FROM dbo.Mes)
+            SET @flagNuevoMes = 1
+
         SET @FechaTemp = @FechaInicioSemana
         SET @ContJueves = 0
 
@@ -52,11 +52,12 @@ BEGIN
 
         SET @CantSemanas = @ContJueves
         SET @FechaFinMes = @UltimoJuevesDelMes
+        SET @FechaInicioMes = @FechaInicioSemana
 
-        -- Cargar empleados activos
         INSERT INTO @Empleados (id)
         SELECT e.id
         FROM dbo.Empleado AS e
+        WHERE (e.EsActivo = 1)
 
         BEGIN TRANSACTION
 
@@ -68,14 +69,13 @@ BEGIN
                     ,CantSemanas
                 )
                 VALUES (
-                    @FechaInicioSemana
+                    @FechaInicioMes
                     ,@FechaFinMes
                     ,@CantSemanas
                 )
 
                 SET @IdMes = SCOPE_IDENTITY()
 
-                -- Crear PlanillaMensual para cada empleado
                 WHILE EXISTS (SELECT 1 FROM @Empleados)
                 BEGIN
                     SELECT TOP 1 @IdEmpleado = e.id
@@ -108,7 +108,6 @@ BEGIN
                     AND (m.FechaFin >= @FechaInicioSemana)
             END
 
-            -- Crear semana
             INSERT INTO dbo.Semana (
                 FechaInicio
                 ,FechaFin
@@ -122,10 +121,10 @@ BEGIN
 
             SET @IdSemana = SCOPE_IDENTITY()
 
-            -- Recargar empleados para crear PlanillaSemanal
             INSERT INTO @Empleados (id)
             SELECT e.id
             FROM dbo.Empleado AS e
+            WHERE (e.EsActivo = 1)
 
             WHILE EXISTS (SELECT 1 FROM @Empleados)
             BEGIN

@@ -1,4 +1,4 @@
-CREATE PROCEDURE dbo.procInsertarEmpleado
+   CREATE PROCEDURE dbo.procInsertarEmpleado
     @inValorDocumentoIdentidad VARCHAR(20)
     ,@inNombre VARCHAR(100)
     ,@inPuesto VARCHAR(100)

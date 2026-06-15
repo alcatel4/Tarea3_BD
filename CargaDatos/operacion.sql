@@ -1,3 +1,21 @@
+-- Limpiar datos previos
+DELETE FROM dbo.BitacoraEvento
+DELETE FROM dbo.MovDeduccion
+DELETE FROM dbo.MovHoras
+DELETE FROM dbo.MovPlanilla
+DELETE FROM dbo.Asistencia
+DELETE FROM dbo.HorarioJornada
+DELETE FROM dbo.DeduccionMensual
+DELETE FROM dbo.PlanillaSemanal
+DELETE FROM dbo.PlanillaMensual
+DELETE FROM dbo.EmpXTipoDeduccionFija
+DELETE FROM dbo.EmpXTipoDeduccionPorcentual
+DELETE FROM dbo.Semana
+DELETE FROM dbo.Mes
+DELETE FROM dbo.Empleado
+DELETE FROM dbo.Usuario WHERE (Tipo = 2)
+DELETE FROM dbo.DBError
+
 DECLARE @xml XML
 DECLARE @outResultCode INT
 DECLARE @FechaOperacion DATETIME
