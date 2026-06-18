@@ -60,7 +60,7 @@ BEGIN
         WHERE (e.EsActivo = 1)
 
         BEGIN TRANSACTION
-
+            
             IF (@flagNuevoMes = 1)
             BEGIN
                 INSERT INTO dbo.Mes (
@@ -75,7 +75,7 @@ BEGIN
                 )
 
                 SET @IdMes = SCOPE_IDENTITY()
-
+                -- Si es un nuevo mes, se crean las planillas mensuales para todos los empleados activos
                 WHILE EXISTS (SELECT 1 FROM @Empleados)
                 BEGIN
                     SELECT TOP 1 @IdEmpleado = e.id
@@ -125,7 +125,9 @@ BEGIN
             SELECT e.id
             FROM dbo.Empleado AS e
             WHERE (e.EsActivo = 1)
-
+            
+            -- Se crean las planillas semanales para todos los empleados activos, asociándolas a la planilla mensual correspondiente
+            -- Si es un nuevo mes, se asocian a la planilla mensual recién creada
             WHILE EXISTS (SELECT 1 FROM @Empleados)
             BEGIN
                 SELECT TOP 1 @IdEmpleado = e.id

@@ -60,7 +60,7 @@ BEGIN
             AND (s.FechaFin >= @inFechaOperacion)
 
         BEGIN TRANSACTION
-
+            -- Para cada empleado, se calculan las deducciones correspondientes a la semana y se actualizan las planillas semanal y mensual
             WHILE EXISTS (SELECT 1 FROM @Empleados)
             BEGIN
                 SELECT TOP 1
@@ -82,7 +82,6 @@ BEGIN
                 WHERE (ep.idEmpleado = @IdEmpleado)
                     AND (ep.FechaInicio <= @inFechaOperacion)
                     AND (ep.FechaFin >= @inFechaOperacion)
-
                 INSERT INTO @Deducciones (IdTipoDeduccion, Monto, EsPorcentual)
                 SELECT ef.idTipoDeduccion
                     ,ef.Monto / @CantSemanas

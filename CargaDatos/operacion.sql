@@ -79,12 +79,14 @@ DECLARE @MarcasAsistencia TABLE (
 SELECT @xml = BulkColumn
 FROM OPENROWSET(BULK 'C:\Users\Usuario\Desktop\BD1\Tarea3\Operaciones.xml', SINGLE_BLOB) AS x
 
+--Lee las fechas del XML y las inserta en la tabla @Fechas
 INSERT INTO @Fechas (Fecha)
 SELECT DISTINCT
     CAST(nodo.value('@Fecha', 'VARCHAR(20)') AS DATETIME) AS Fecha
 FROM @xml.nodes('/Operaciones/FechaOperacion') AS T(nodo)
 ORDER BY Fecha ASC
 
+--Itera por cada fecha y procesa las operaciones correspondientes
 WHILE EXISTS (SELECT 1 FROM @Fechas WHERE (Procesada = 0))
 BEGIN
     SELECT TOP 1 @FechaOperacion = f.Fecha
@@ -102,7 +104,6 @@ BEGIN
     DELETE FROM @DesasociarDeducciones
     DELETE FROM @AsignarJornadas
     DELETE FROM @MarcasAsistencia
-
     INSERT INTO @InsertarEmpleados (ValorDocumento, Nombre, Puesto, CuentaBancaria, FechaContratacion, Username, Password)
     SELECT
         nodo.value('@ValorDocumentoIdentidad', 'VARCHAR(20)')
@@ -160,7 +161,8 @@ BEGIN
     FROM @xml.nodes('/Operaciones/FechaOperacion') AS T1(fecha_nodo)
     CROSS APPLY fecha_nodo.nodes('MarcaAsistencia') AS T2(nodo)
     WHERE (fecha_nodo.value('@Fecha', 'VARCHAR(20)') = @FechaStr)
-
+    
+    --Fin de la carga de datos para la fecha actual, ahora se procesan las operaciones
     WHILE EXISTS (SELECT 1 FROM @InsertarEmpleados)
     BEGIN
         SELECT TOP 1
@@ -265,6 +267,7 @@ BEGIN
         WHERE (ValorDocumento = @ValorDocumento)
     END
 
+    --Si la fecha de operacion es jueves, se ejecutan los procedimientos de cierre de semana
     IF (DATEPART(WEEKDAY, @FechaOperacion) = 5)
     BEGIN
         EXEC dbo.procCierreSemana
